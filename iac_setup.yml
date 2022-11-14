@@ -1,0 +1,122 @@
+heat_template_version: "2021-04-16"
+
+description: "version 2017-09-01 created by HOT Generator at Mon, 24 Oct 2022 21:43:19 GMT."
+
+parameters:
+  GITLAB_ROOT_PASSWORD:
+    type: string
+    description: The password to be set as the root for GitLab
+    default: Pass.123
+    
+resources: 
+  Net_1: 
+    type: "OS::Neutron::Net"
+    properties: 
+      admin_state_up: true
+      name: vm1_net
+
+  Subnet_1: 
+    type: "OS::Neutron::Subnet"
+    properties: 
+      network: { get_resource: Net_1 }
+      name: vm1_subnet
+      ip_version: 4
+      enable_dhcp: true
+      cidr: "192.168.10.0/24"
+    depends_on: 
+      - Net_1
+
+  Router_1: 
+    type: "OS::Neutron::Router"
+    properties: 
+      external_gateway_info: 
+        network: "7b4df2ac-be48-44fc-888e-3706f49b86e3"
+      admin_state_up: true
+      name: vm1_router
+
+  RouterInterface_1: 
+    type: "OS::Neutron::RouterInterface"
+    properties: 
+      router: { get_resource: Router_1 }
+      subnet: { get_resource: Subnet_1 }
+    depends_on: 
+      - Subnet_1
+      - Router_1
+
+  Port_1: 
+    type: "OS::Neutron::Port"
+    properties: 
+      admin_state_up: true
+      fixed_ips: 
+        - subnet: { get_resource: Subnet_1 }
+      security_groups: 
+        - "29209c7b-a6b7-4761-95bd-98a02cdd6b6d"
+      network: { get_resource: Net_1 }
+      name: vm1_port
+    depends_on: 
+      - Net_1
+      - Subnet_1
+
+  FloatingIP_1: 
+    type: "OS::Neutron::FloatingIP"
+    properties: 
+      floating_network: "7b4df2ac-be48-44fc-888e-3706f49b86e3"
+      port_id: { get_resource: Port_1 }
+    depends_on:
+      - Port_1
+
+  KeyPair_1: 
+    type: "OS::Nova::KeyPair"
+    properties: 
+      name: vm1_keypair
+      save_private_key: true
+
+  Server_1: 
+    type: "OS::Nova::Server"
+    properties: 
+      networks: 
+        - port: { get_resource: Port_1 }
+      key_name: { get_resource: KeyPair_1 }
+      flavor: "m1.medium"
+      image: "57069bb6-4ff0-4cb0-a962-c116d523c4bd"
+      availability_zone: nova
+      name: vm1
+      user_data:
+        str_replace:
+          template: |
+            #!/bin/bash
+            # GitLab set-up
+            sudo apt update
+            sudo apt-get install -y curl openssh-server ca-certificates
+            curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.deb.sh | sudo bash
+            sudo apt-get install -y gitlab-ce
+            sudo sed -i "s@external_url 'http://gitlab\.example\.com'@external_url 'http://${$GITLAB_PUBLIC_IP//./\\.}'@g" /etc/gitlab/gitlab.rb
+            sudo gitlab-ctl reconfigure
+            sudo gitlab-ctl start
+            sudo gitlab-ctl status
+            (echo $GITLAB_ROOT_PASSWD; echo $GITLAB_ROOT_PASSWD) | sudo gitlab-rake "gitlab:password:reset[root]"
+            # Apache set-up
+            sudo apt-get install -y apache2
+            # Project set-up
+            sudo apt-get install -y nodejs
+          params:
+           $GITLAB_ROOT_PASSWD: { get_param: GITLAB_ROOT_PASSWORD }
+           $GITLAB_PUBLIC_IP: { get_attr: [ FloatingIP_1, floating_ip_address ] }
+    depends_on: 
+      - FloatingIP_1
+      - Port_1
+      - KeyPair_1
+
+outputs: 
+  KeyPair_1_private_key: 
+    description: "The private_key of KeyPair_1."
+    value: { get_attr: [KeyPair_1, private_key] }
+  KeyPair_1_public_key:
+    description: "The public_key of KeyPair_1."
+    value: { get_attr: [KeyPair_1, public_key] }
+  server1_private_ip:
+    description: IP address of server in private network
+    value: { get_attr: [ Server_1, first_address ] }
+  server1_public_ip:
+    description: Floating IP address of server in public network
+    value: { get_attr: [ FloatingIP_1, floating_ip_address ] }
