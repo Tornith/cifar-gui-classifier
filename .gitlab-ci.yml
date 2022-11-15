@@ -5,7 +5,7 @@ stages:
 
 variables:
   HOST_IP: $CI_SERVER_HOST
-  SSH_USER: ubuntu
+  SSH_USER: root
 
 test:
   image: node:latest
@@ -52,5 +52,5 @@ deploy:
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
   script:
-    - scp -o StrictHostKeyChecking=no build.zip ${SSH_USER}@${HOST_IP}:/home/${SSH_USER}/build.zip
-    - ssh -o StrictHostKeyChecking=no ${SSH_USER}@${HOST_IP} "cd /var/www/html/; sudo unzip -o /home/${SSH_USER}/build.zip"
+    - scp -o StrictHostKeyChecking=no build.zip ${SSH_USER}@${HOST_IP}:~/build.zip
+    - ssh -o StrictHostKeyChecking=no ${SSH_USER}@${HOST_IP} "cd /var/www/html/; sudo unzip -o ~/build.zip"
