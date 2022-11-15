@@ -6,34 +6,6 @@ stages:
 variables:
   HOST_IP: $CI_SERVER_HOST
   SSH_USER: ubuntu
-  SSH_PRIVATE_KEY: |
-    -----BEGIN RSA PRIVATE KEY-----
-    MIIEogIBAAKCAQEAor9r9d8wb9b29Bdu2iDuIco21wXoI4CNcjh2holv8b+EcBbs
-    XeZhNXG1fGXUUGMdswfLKQUnAYsDeLh5LQT4JddJndG1T94EBA2Ar6eAtJLpR8G6
-    ZVCucHHbkQSqPCH0KwQMQbZPd/U5qC5GQAsQttQ49n2SLoIFMQf6HrAw/yJ15yQk
-    jEzwDMIrO6elPCpoqq+6JdQnzCQDJeiauO4vxhX7dr1v/xSNY04nqfzQox13sjnx
-    2+2UDe+FzwnZ53m6Z8JYpzK/Yag8W925shM3N7Gl5vdKfRg81kp5W50OWv/xUqAm
-    9sdV1twLTvsuN0oi9AMElkjqcQS5e/C4kRLECQIDAQABAoIBAQCb+nBjPpxypAkd
-    WhQRFPyGAANdQ7j/xaZK8ViPistyW8Z3k1DIkhNaoHd7GTFKNiRxwKdy0hBXRz91
-    hQAGKLwXsGVKz4FBYZxhsftC3nvZFPBlqIOXtKLq/ASe0WTCqxwT2hZRKISziKDQ
-    0kDcAn7rayyI+UKQNmb5XhbXMLBU5M844DDJXI9SKHG781zQdQs0C0skrZshmwvJ
-    KZIR/oAGTEOd0/3rm9FiCeQT2bIPJUhVSQtH0fOa12sHgTj68dGAAcaiEyvBuyS6
-    kUhuY9yQuf3kAWPQASrQbciJOlBK1F/hrbdgmrGYa7ZSSh9QFyaP2yQu7Z4ObUMn
-    N+uMjk4BAoGBANjPs3nILhmhC72CAFZVCnxd/lvf8QTy51Lu73nu7a68m7ZtfzyS
-    UILzRrc2C8JUUwRbOmZYUKF5dbq7cMNHvabcgkdvGH9L79QNfuRqIXbOuRu6zi4R
-    /ADOtiiv4vnFR/oYPf4FacdBBa+uZ6x8dllUqJB7twJU9iEysTNeDWtBAoGBAMAq
-    FsMbrX9IdFuJqVv4Zvn4HIroBCy4F7QjiNt8wKZRhd6YuvKLjP6AG03JL6vpk7xz
-    rGbuVsMP4E9zwFf+Ze0R4u4uSPFE3ErS1M4JJgbmup5v3o8GqQK0zZqDv66yAnFJ
-    mH0x3hRzq1kQSSi7RQhpuN8ZatY+27gpDcCtrA7JAoGALEObXM2lu83JW9Nixj1u
-    ep2mBJPf3SbKW4A0nCxPklEnaUNJqtAkZ9fLJDSAihg1KrqFXcfCDnWBt7H0/6lx
-    6tMyNetUkQir2hs3QOL6Ggtyd1rYJUe+r1uEjSH7sQq5+zFf1rC8O9Xml0uAFxMC
-    BpLmJzlaz7sQ1Q5IZzhYfQECfweBnWIBssVGD0WEGxl8mokpJ/RFG+SjTEm9GZt5
-    RA07If+P972BtgA7ANYJBdOxTBQQcKuUo876z8hKvTiyt0iLalHjfPXvuqsxkR57
-    PQEIAkIuHIN5vyBb76wZeWNZkL7cIRjC2enymr7f4/uzVP7/IjmUxJeZ3PtUnzTn
-    k9ECgYEAwQ/aMM2zpikdTrcrAOhjurymU/ugaCh9W2QuO8A2+HQNiF52pZ1MIlJm
-    FKt/Lx63fq0TNPdfk0kxkOkBO2Oar2s8xCNZEUKcX4IyDplOL8LItnTza8Vd8nw5
-    RHQVECY1MtFs1RtJYuaL7HjjJ01e785B6GslHkNqxhGTCVE5PCM=
-    -----END RSA PRIVATE KEY-----
 
 test:
   image: node:latest
@@ -76,7 +48,7 @@ deploy:
   before_script:
     - apt-get update -qq && apt-get install -y -qq openssh-client
     - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - echo "$PRIVATE_SSH_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
   script:
